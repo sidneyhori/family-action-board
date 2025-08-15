@@ -16,7 +16,7 @@ export default function Home() {
         >
           <div className="relative z-10">
             <h1 className="text-4xl font-bold text-white mb-3 drop-shadow-lg">Family Action Board</h1>
-            <p className="text-white text-lg drop-shadow-md">Hawthorne's shared workspace</p>
+            <p className="text-white text-lg drop-shadow-md">Hawthorne&apos;s shared workspace</p>
           </div>
         </div>
         <TodoBoard />

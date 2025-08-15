@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Todo, TodoStatus, TodoColor } from '@/types/todo'
+import { Todo, TodoColor } from '@/types/todo'
 import { Edit3, Trash2, Check, X } from 'lucide-react'
 import { format, isAfter, isToday, isTomorrow } from 'date-fns'
 
