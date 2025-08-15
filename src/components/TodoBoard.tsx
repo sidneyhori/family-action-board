@@ -2,15 +2,16 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Todo, TodoStatus } from '@/types/todo'
+import { Todo, TodoStatus, TodoAssignee } from '@/types/todo'
 import TodoCard from './TodoCard'
 import AddTodoForm from './AddTodoForm'
-import { Plus } from 'lucide-react'
+import StickyHeader from './StickyHeader'
 
 export default function TodoBoard() {
   const [todos, setTodos] = useState<Todo[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
+  const [selectedFilter, setSelectedFilter] = useState<TodoAssignee | 'all'>('all')
 
   useEffect(() => {
     fetchTodos()
@@ -102,6 +103,11 @@ export default function TodoBoard() {
     )
   }
 
+  // Filter todos based on selected filter
+  const filteredTodos = selectedFilter === 'all' 
+    ? todos 
+    : todos.filter(todo => todo.assigned_to === selectedFilter)
+
   const statusColumns = [
     { status: 'pending' as TodoStatus, title: 'To Do', icon: '📝' },
     { status: 'in_progress' as TodoStatus, title: 'In Progress', icon: '⚡' },
@@ -110,15 +116,11 @@ export default function TodoBoard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-center">
-        <button
-          onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg transition-colors font-medium"
-        >
-          <Plus size={16} />
-          New Task
-        </button>
-      </div>
+      <StickyHeader 
+        onNewTask={() => setShowAddForm(true)}
+        selectedFilter={selectedFilter}
+        onFilterChange={setSelectedFilter}
+      />
 
       {showAddForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -140,11 +142,11 @@ export default function TodoBoard() {
                 <h2 className="font-semibold text-gray-900">{column.title}</h2>
               </div>
               <p className="text-sm text-gray-600">
-                {todos.filter(todo => todo.status === column.status).length} tasks
+                {filteredTodos.filter(todo => todo.status === column.status).length} tasks
               </p>
             </div>
             <div className="p-3 space-y-3">
-              {todos
+              {filteredTodos
                 .filter(todo => todo.status === column.status)
                 .map(todo => (
                   <TodoCard
@@ -154,7 +156,7 @@ export default function TodoBoard() {
                     onDelete={deleteTodo}
                   />
                 ))}
-              {todos.filter(todo => todo.status === column.status).length === 0 && (
+              {filteredTodos.filter(todo => todo.status === column.status).length === 0 && (
                 <div className="text-center py-8 text-gray-600 text-sm">
                   No tasks yet
                 </div>
