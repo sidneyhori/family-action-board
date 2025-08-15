@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Todo, TodoColor } from '@/types/todo'
+import { Todo, TodoColor, TodoStatus } from '@/types/todo'
 import { Edit3, Trash2, Check, X } from 'lucide-react'
 import { format, isAfter, isToday, isTomorrow } from 'date-fns'
 
@@ -50,6 +50,31 @@ export default function TodoCard({ todo, onUpdate, onDelete }: TodoCardProps) {
       newAssignee = 'person1'
     }
     onUpdate(todo.id, { assigned_to: newAssignee })
+  }
+
+  const handleStatusChange = () => {
+    let newStatus: TodoStatus
+    if (todo.status === 'pending') {
+      newStatus = 'in_progress'
+    } else if (todo.status === 'in_progress') {
+      newStatus = 'completed'
+    } else {
+      newStatus = 'pending'
+    }
+    onUpdate(todo.id, { status: newStatus })
+  }
+
+  const getStatusInfo = () => {
+    switch (todo.status) {
+      case 'pending':
+        return { text: 'ToDo', class: 'text-yellow-700 bg-yellow-100 border-yellow-200' }
+      case 'in_progress':
+        return { text: 'Prog', class: 'text-blue-700 bg-blue-100 border-blue-200' }
+      case 'completed':
+        return { text: 'Done', class: 'text-green-700 bg-green-100 border-green-200' }
+      default:
+        return { text: 'ToDo', class: 'text-yellow-700 bg-yellow-100 border-yellow-200' }
+    }
   }
 
   const handleSaveEdit = () => {
@@ -181,6 +206,13 @@ export default function TodoCard({ todo, onUpdate, onDelete }: TodoCardProps) {
 
             <div className="flex items-center justify-between pt-2">
               <div className="flex items-center gap-2">
+                <button
+                  onClick={handleStatusChange}
+                  className={`text-xs px-2 py-1 rounded-full transition-colors font-medium border ${getStatusInfo().class}`}
+                >
+                  {getStatusInfo().text}
+                </button>
+                
                 <button
                   onClick={handleAssigneeChange}
                   className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors text-gray-800 font-medium"
