@@ -62,7 +62,7 @@ export default function TodoCard({ todo, onUpdate, onDelete }: TodoCardProps) {
 
   const handleSaveDate = () => {
     onUpdate(todo.id, {
-      due_date: editDate || null
+      due_date: editDate ? `${editDate}T12:00:00.000Z` : null
     })
     setIsEditingDate(false)
   }
@@ -75,14 +75,23 @@ export default function TodoCard({ todo, onUpdate, onDelete }: TodoCardProps) {
   const getDueDateInfo = () => {
     if (!todo.due_date) return null
     
-    const dueDate = new Date(todo.due_date)
+    // Parse the date as local date to avoid timezone issues
+    const dateStr = todo.due_date.split('T')[0] // Get just the date part
+    const dueDate = new Date(dateStr + 'T12:00:00') // Force noon local time
     const now = new Date()
     
-    if (isToday(dueDate)) {
+    // Set time to noon for comparison to avoid edge cases
+    const today = new Date()
+    today.setHours(12, 0, 0, 0)
+    
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    
+    if (dueDate.toDateString() === today.toDateString()) {
       return { text: 'Today', class: 'text-orange-600 bg-orange-50' }
-    } else if (isTomorrow(dueDate)) {
+    } else if (dueDate.toDateString() === tomorrow.toDateString()) {
       return { text: 'Tomorrow', class: 'text-amber-600 bg-amber-50' }
-    } else if (isAfter(now, dueDate)) {
+    } else if (dueDate < today) {
       return { text: 'Overdue', class: 'text-red-600 bg-red-50' }
     } else {
       return { text: format(dueDate, 'MMM dd'), class: 'text-gray-600 bg-gray-50' }
@@ -91,7 +100,9 @@ export default function TodoCard({ todo, onUpdate, onDelete }: TodoCardProps) {
 
   const getDateTag = () => {
     if (!todo.due_date) return null
-    const dueDate = new Date(todo.due_date)
+    // Parse the date as local date to avoid timezone issues
+    const dateStr = todo.due_date.split('T')[0]
+    const dueDate = new Date(dateStr + 'T12:00:00')
     return format(dueDate, 'M/d')
   }
 

@@ -36,7 +36,7 @@ export default function AddTodoForm({ onSubmit, onCancel }: AddTodoFormProps) {
       status: 'pending',
       assigned_to: assignedTo,
       color,
-      due_date: dueDate || null
+      due_date: dueDate ? `${dueDate}T12:00:00.000Z` : null
     })
 
     setTitle('')
