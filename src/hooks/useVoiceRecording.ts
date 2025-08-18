@@ -24,7 +24,12 @@ export function useVoiceRecording(): UseVoiceRecordingReturn {
 
   const startRecording = useCallback(() => {
     if (!isSupported) {
-      setError('Speech recognition not supported in this browser')
+      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      if (isMobile) {
+        setError('Voice input requires Chrome on Android. iOS Safari does not support voice input.')
+      } else {
+        setError('Speech recognition not supported. Please use Chrome, Edge, or Safari.')
+      }
       return
     }
 
@@ -52,7 +57,13 @@ export function useVoiceRecording(): UseVoiceRecordingReturn {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       recognition.onerror = (event: any) => {
-        setError(`Speech recognition error: ${event.error}`)
+        if (event.error === 'not-allowed') {
+          setError('Microphone access denied. Please allow microphone permissions.')
+        } else if (event.error === 'network') {
+          setError('Network error. Voice requires HTTPS connection.')
+        } else {
+          setError(`Speech recognition error: ${event.error}`)
+        }
         setIsRecording(false)
       }
 

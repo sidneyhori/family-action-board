@@ -85,7 +85,10 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
           <div className="text-center">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Voice Not Supported</h3>
             <p className="text-gray-600 mb-4">
-              Voice input is not supported in your browser. Please use the regular form instead.
+              Voice input requires Chrome, Edge, or Safari on desktop. Mobile support is limited to Chrome Android.
+            </p>
+            <p className="text-sm text-gray-500 mb-4">
+              Please use the regular form instead, or try on a supported browser.
             </p>
             <button
               onClick={onCancel}
