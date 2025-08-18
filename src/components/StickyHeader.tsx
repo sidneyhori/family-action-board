@@ -1,10 +1,11 @@
 'use client'
 
 import { TodoAssignee } from '@/types/todo'
-import { Plus, Users } from 'lucide-react'
+import { Plus, Users, Mic } from 'lucide-react'
 
 interface StickyHeaderProps {
   onNewTask: () => void
+  onVoiceTask: () => void
   selectedFilter: TodoAssignee | 'all'
   onFilterChange: (filter: TodoAssignee | 'all') => void
 }
@@ -17,7 +18,8 @@ const filterOptions = [
 ]
 
 export default function StickyHeader({ 
-  onNewTask, 
+  onNewTask,
+  onVoiceTask,
   selectedFilter, 
   onFilterChange 
 }: StickyHeaderProps) {
@@ -50,14 +52,24 @@ export default function StickyHeader({
             })}
           </div>
 
-          {/* New Task button */}
-          <button
-            onClick={onNewTask}
-            className="flex items-center gap-1 sm:gap-2 bg-gray-900 hover:bg-gray-800 text-white px-2.5 py-1.5 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl transition-colors font-medium shadow-sm hover:shadow-md"
-          >
-            <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
-            <span className="hidden sm:inline">New Task</span>
-          </button>
+          {/* Action buttons */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onVoiceTask}
+              className="flex items-center gap-1 sm:gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl transition-colors font-medium shadow-sm hover:shadow-md"
+            >
+              <Mic size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <span className="hidden sm:inline">Voice</span>
+            </button>
+            
+            <button
+              onClick={onNewTask}
+              className="flex items-center gap-1 sm:gap-2 bg-gray-900 hover:bg-gray-800 text-white px-2.5 py-1.5 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl transition-colors font-medium shadow-sm hover:shadow-md"
+            >
+              <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <span className="hidden sm:inline">New Task</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

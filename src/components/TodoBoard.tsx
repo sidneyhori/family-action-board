@@ -6,11 +6,13 @@ import { Todo, TodoStatus, TodoAssignee } from '@/types/todo'
 import TodoCard from './TodoCard'
 import AddTodoForm from './AddTodoForm'
 import StickyHeader from './StickyHeader'
+import VoiceTaskModal from './VoiceTaskModal'
 
 export default function TodoBoard() {
   const [todos, setTodos] = useState<Todo[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
+  const [showVoiceModal, setShowVoiceModal] = useState(false)
   const [selectedFilter, setSelectedFilter] = useState<TodoAssignee | 'all'>('all')
 
   useEffect(() => {
@@ -52,6 +54,7 @@ export default function TodoBoard() {
 
       setTodos(prev => [data, ...prev])
       setShowAddForm(false)
+      setShowVoiceModal(false)
     } catch (error) {
       console.error('Error:', error)
     }
@@ -118,6 +121,7 @@ export default function TodoBoard() {
     <div className="space-y-6">
       <StickyHeader 
         onNewTask={() => setShowAddForm(true)}
+        onVoiceTask={() => setShowVoiceModal(true)}
         selectedFilter={selectedFilter}
         onFilterChange={setSelectedFilter}
       />
@@ -131,6 +135,13 @@ export default function TodoBoard() {
             />
           </div>
         </div>
+      )}
+
+      {showVoiceModal && (
+        <VoiceTaskModal
+          onSubmit={addTodo}
+          onCancel={() => setShowVoiceModal(false)}
+        />
       )}
 
       <div className="grid md:grid-cols-3 gap-4">
