@@ -15,6 +15,7 @@ export function useVoiceRecording(): UseVoiceRecordingReturn {
   const [isRecording, setIsRecording] = useState(false)
   const [transcript, setTranscript] = useState('')
   const [error, setError] = useState<string | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null)
 
   // Check if browser supports speech recognition
@@ -41,14 +42,16 @@ export function useVoiceRecording(): UseVoiceRecordingReturn {
         setTranscript('')
       }
 
-      recognition.onresult = (event) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      recognition.onresult = (event: any) => {
         const result = event.results[0]?.[0]?.transcript
         if (result) {
           setTranscript(result)
         }
       }
 
-      recognition.onerror = (event) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      recognition.onerror = (event: any) => {
         setError(`Speech recognition error: ${event.error}`)
         setIsRecording(false)
       }
@@ -85,7 +88,9 @@ export function useVoiceRecording(): UseVoiceRecordingReturn {
 // Extend Window interface for TypeScript
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition
-    webkitSpeechRecognition: typeof SpeechRecognition
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    SpeechRecognition: any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    webkitSpeechRecognition: any
   }
 }
