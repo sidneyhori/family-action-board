@@ -44,8 +44,10 @@ Rules:
 - Extract any additional context as description
 
 Examples:
-"Remind Sid to take out trash tomorrow" → {"title": "Take out trash", "description": null, "assigned_to": "person1", "color": "yellow", "due_date": "2025-08-18"}
-"Pri needs to book dentist red priority by Friday" → {"title": "Book dentist appointment", "description": null, "assigned_to": "person2", "color": "red", "due_date": "2025-08-22"}`
+"Remind Sid to take out trash tomorrow" → {"title": "Take out trash", "description": null, "assigned_to": "person1", "color": "yellow", "due_date": "2025-08-19"}
+"Pri needs to book dentist red priority by Friday" → {"title": "Book dentist appointment", "description": null, "assigned_to": "person2", "color": "red", "due_date": "2025-08-22"}
+
+Current date: ${new Date().toISOString().split('T')[0]} (use this as reference for relative dates)`
         },
         {
           role: "user",
@@ -67,6 +69,18 @@ Examples:
     return NextResponse.json(parsedTask)
   } catch (error) {
     console.error('Error parsing voice input:', error)
+    
+    // More specific error handling
+    if (error instanceof Error) {
+      if (error.message.includes('API key')) {
+        return NextResponse.json({ error: 'OpenAI API key not configured' }, { status: 500 })
+      }
+      if (error.message.includes('JSON')) {
+        return NextResponse.json({ error: 'Invalid response format from AI' }, { status: 500 })
+      }
+      return NextResponse.json({ error: `Parse error: ${error.message}` }, { status: 500 })
+    }
+    
     return NextResponse.json({ error: 'Failed to parse voice input' }, { status: 500 })
   }
 }

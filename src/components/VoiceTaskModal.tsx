@@ -44,14 +44,21 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
       })
 
       if (!response.ok) {
-        throw new Error('Failed to parse voice input')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to parse voice input`)
       }
 
       const parsed: ParsedTask = await response.json()
       setParsedTask(parsed)
     } catch (error) {
       console.error('Error parsing voice:', error)
-      setParseError('Failed to understand the task. Please try again.')
+      
+      // More specific error messages
+      if (error instanceof Error) {
+        setParseError(`Error: ${error.message}`)
+      } else {
+        setParseError('Failed to understand the task. Please try again.')
+      }
     } finally {
       setIsParsing(false)
     }
