@@ -113,7 +113,7 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
                 Tap the microphone and describe your task. For example:
               </p>
               <p className="text-xs text-gray-500 mt-2 italic">
-                "Remind Sid to take out trash by tomorrow" or "Pri needs to book dentist, red priority"
+&quot;Remind Sid to take out trash by tomorrow&quot; or &quot;Pri needs to book dentist, red priority&quot;
               </p>
             </div>
 
@@ -140,7 +140,7 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
               <div className="text-left">
                 <p className="text-sm font-medium text-gray-700 mb-1">You said:</p>
                 <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg italic">
-                  "{transcript}"
+                  &quot;{transcript}&quot;
                 </p>
               </div>
             )}
@@ -173,7 +173,7 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
             <div className="text-center mb-4">
               <p className="text-sm font-medium text-gray-700 mb-2">I understood:</p>
               <p className="text-xs text-gray-600 bg-gray-50 p-2 rounded italic">
-                "{transcript}"
+&quot;{transcript}&quot;
               </p>
             </div>
 

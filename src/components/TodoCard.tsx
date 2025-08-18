@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Todo, TodoColor, TodoStatus } from '@/types/todo'
 import { Edit3, Trash2, Check, X } from 'lucide-react'
-import { format, isAfter, isToday, isTomorrow } from 'date-fns'
+import { format } from 'date-fns'
 
 interface TodoCardProps {
   todo: Todo
@@ -103,7 +103,7 @@ export default function TodoCard({ todo, onUpdate, onDelete }: TodoCardProps) {
     // Parse the date as local date to avoid timezone issues
     const dateStr = todo.due_date.split('T')[0] // Get just the date part
     const dueDate = new Date(dateStr + 'T12:00:00') // Force noon local time
-    const now = new Date()
+    // const now = new Date()
     
     // Set time to noon for comparison to avoid edge cases
     const today = new Date()
