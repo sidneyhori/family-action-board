@@ -24,11 +24,13 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
   const [parsedTask, setParsedTask] = useState<ParsedTask | null>(null)
   const [parseError, setParseError] = useState<string | null>(null)
   const [hasAttemptedParsing, setHasAttemptedParsing] = useState(false)
+  const [isEditingTranscript, setIsEditingTranscript] = useState(false)
+  const [editedTranscript, setEditedTranscript] = useState('')
 
   useEffect(() => {
     if (transcript && !isRecording && !hasAttemptedParsing) {
-      setHasAttemptedParsing(true)
-      parseVoiceInput(transcript)
+      setEditedTranscript(transcript)
+      // Don't auto-parse, show edit option first
     }
   }, [transcript, isRecording, hasAttemptedParsing])
 
@@ -93,7 +95,18 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
     setParseError(null)
     setIsParsing(false)
     setHasAttemptedParsing(false)
+    setIsEditingTranscript(false)
+    setEditedTranscript('')
     // Note: transcript is managed by the hook, we don't reset it here
+  }
+
+  const handleEditTranscript = () => {
+    setIsEditingTranscript(true)
+  }
+
+  const handleConfirmTranscript = () => {
+    setHasAttemptedParsing(true)
+    parseVoiceInput(editedTranscript)
   }
 
   if (!isSupported) {
@@ -133,7 +146,7 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
           </button>
         </div>
 
-        {!parsedTask && !isParsing && !parseError && (
+        {!parsedTask && !isParsing && !parseError && !editedTranscript && (
           <div className="text-center space-y-4">
             <div className="text-gray-600 mb-4">
               <Volume2 size={48} className="mx-auto mb-3 text-gray-400" />
@@ -176,6 +189,71 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
               </div>
             )}
             
+          </div>
+        )}
+
+        {editedTranscript && !isParsing && !parseError && !parsedTask && (
+          <div className="space-y-4">
+            <div className="text-center mb-4">
+              <p className="text-sm font-medium text-gray-700 mb-2">I heard you say:</p>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                {isEditingTranscript ? (
+                  <div className="space-y-3">
+                    <textarea
+                      value={editedTranscript}
+                      onChange={(e) => setEditedTranscript(e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded text-sm resize-none"
+                      rows={2}
+                      placeholder="Edit what you said..."
+                      autoFocus
+                    />
+                    <div className="flex gap-2 justify-center">
+                      <button
+                        onClick={handleConfirmTranscript}
+                        className="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700"
+                      >
+                        ✓ Process This
+                      </button>
+                      <button
+                        onClick={() => setIsEditingTranscript(false)}
+                        className="bg-gray-500 text-white px-4 py-2 rounded text-sm hover:bg-gray-600"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-800 italic font-medium">
+                      &quot;{editedTranscript}&quot;
+                    </p>
+                    <p className="text-xs text-orange-600">
+                      Does this look wrong? You can edit it before processing.
+                    </p>
+                    <div className="flex gap-2 justify-center">
+                      <button
+                        onClick={handleConfirmTranscript}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700"
+                      >
+                        ✓ Looks Good
+                      </button>
+                      <button
+                        onClick={handleEditTranscript}
+                        className="bg-yellow-600 text-white px-4 py-2 rounded text-sm hover:bg-yellow-700"
+                      >
+                        ✏️ Edit Text
+                      </button>
+                      <button
+                        onClick={handleTryAgain}
+                        className="bg-gray-500 text-white px-4 py-2 rounded text-sm hover:bg-gray-600"
+                      >
+                        Try Again
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
