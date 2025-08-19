@@ -38,9 +38,10 @@ export function useVoiceRecording(): UseVoiceRecordingReturn {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
       const recognition = new SpeechRecognition()
 
-      recognition.continuous = false
-      recognition.interimResults = false
+      recognition.continuous = true
+      recognition.interimResults = true
       recognition.lang = 'en-US'
+      recognition.maxAlternatives = 3
 
       recognition.onstart = () => {
         setIsRecording(true)
@@ -57,9 +58,22 @@ export function useVoiceRecording(): UseVoiceRecordingReturn {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       recognition.onresult = (event: any) => {
-        const result = event.results[0]?.[0]?.transcript
-        if (result) {
-          setTranscript(result)
+        let finalTranscript = ''
+        let interimTranscript = ''
+
+        for (let i = 0; i < event.results.length; i++) {
+          const transcriptPart = event.results[i][0].transcript
+          if (event.results[i].isFinal) {
+            finalTranscript += transcriptPart
+          } else {
+            interimTranscript += transcriptPart
+          }
+        }
+
+        // Update transcript with the final result, or interim if no final yet
+        const bestTranscript = finalTranscript || interimTranscript
+        if (bestTranscript.trim()) {
+          setTranscript(bestTranscript.trim())
         }
       }
 

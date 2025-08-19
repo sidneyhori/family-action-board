@@ -138,10 +138,13 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
             <div className="text-gray-600 mb-4">
               <Volume2 size={48} className="mx-auto mb-3 text-gray-400" />
               <p className="text-sm">
-                Tap the microphone and describe your task. For example:
+                Speak clearly and use full sentences for better accuracy:
               </p>
               <p className="text-xs text-gray-500 mt-2 italic">
-&quot;Remind Sid to take out trash by tomorrow&quot; or &quot;Pri needs to book dentist, red priority&quot;
+&quot;Remind Sid to update addresses by tomorrow&quot; or &quot;Pri needs to book dentist appointment, red priority&quot;
+              </p>
+              <p className="text-xs text-orange-600 mt-1">
+                💡 Longer phrases work better than single words
               </p>
             </div>
 
@@ -200,10 +203,11 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
         {parsedTask && (
           <div className="space-y-4">
             <div className="text-center mb-4">
-              <p className="text-sm font-medium text-gray-700 mb-2">I understood:</p>
-              <p className="text-xs text-gray-600 bg-gray-50 p-2 rounded italic">
+              <p className="text-sm font-medium text-gray-700 mb-2">I heard you say:</p>
+              <p className="text-sm text-gray-800 bg-blue-50 border border-blue-200 p-3 rounded-lg italic font-medium">
 &quot;{transcript}&quot;
               </p>
+              <p className="text-xs text-gray-500 mt-1">If this is wrong, try speaking more clearly</p>
             </div>
 
             <div className="space-y-3 bg-gray-50 p-4 rounded-lg">

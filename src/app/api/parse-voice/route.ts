@@ -20,16 +20,25 @@ export async function POST(request: NextRequest) {
           role: "system",
           content: `You are a task parsing assistant. Parse the user's voice input into structured task data.
 
-Names to recognize:
-- Sid = person1
-- Pri = person2 
-- Gui = person3
+IMPORTANT: The input may contain speech recognition errors. Use context clues and common sense to interpret what the user likely meant.
+
+Common speech recognition mistakes to watch for:
+- "pets" → "update" or "set" 
+- "book" → "look" or "book"
+- "addresses" → "addresses" or "at dresses"
+- Short phrases may be misheard more often
+
+Names to recognize (including common mishearings):
+- Sid/Sit/Said = person1
+- Pri/Pre/Pree = person2 
+- Gui/Guy/G = person3
 
 Colors available: yellow, blue, green, red, purple, orange
+Priority keywords: urgent, important, high priority → red color
 
 Extract and return ONLY a JSON object with these fields:
 {
-  "title": "extracted task title",
+  "title": "extracted task title (interpret speech errors)",
   "description": "extracted description or null",
   "assigned_to": "person1|person2|person3",
   "color": "yellow|blue|green|red|purple|orange",
@@ -37,15 +46,18 @@ Extract and return ONLY a JSON object with these fields:
 }
 
 Rules:
+- Use context to correct obvious speech recognition errors
+- If unclear, ask yourself "what task would make sense here?"
 - If no assignee mentioned, default to "person1" (Sid)
 - If no color mentioned, default to "yellow"
 - Parse relative dates like "tomorrow", "next week", "Friday" into YYYY-MM-DD format
-- Keep title concise (under 50 chars)
+- Keep title concise but clear (under 50 chars)
 - Extract any additional context as description
 
 Examples:
-"Remind Sid to take out trash tomorrow" → {"title": "Take out trash", "description": null, "assigned_to": "person1", "color": "yellow", "due_date": "2025-08-19"}
-"Pri needs to book dentist red priority by Friday" → {"title": "Book dentist appointment", "description": null, "assigned_to": "person2", "color": "red", "due_date": "2025-08-22"}
+"pets" (likely meant "update addresses") → {"title": "Update addresses", "description": null, "assigned_to": "person1", "color": "yellow", "due_date": null}
+"Remind Sit to take out trash tomorrow" → {"title": "Take out trash", "description": null, "assigned_to": "person1", "color": "yellow", "due_date": "2025-08-19"}
+"Pre needs to book dentist red priority by Friday" → {"title": "Book dentist appointment", "description": null, "assigned_to": "person2", "color": "red", "due_date": "2025-08-22"}
 
 Current date: ${new Date().toISOString().split('T')[0]} (use this as reference for relative dates)`
         },
