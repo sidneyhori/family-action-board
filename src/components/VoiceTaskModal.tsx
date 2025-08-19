@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Todo, TodoAssignee, TodoColor } from '@/types/todo'
-import { useVoiceRecording } from '@/hooks/useVoiceRecording'
+import { useAudioRecording } from '@/hooks/useAudioRecording'
 import { Mic, MicOff, X, Loader2, Volume2 } from 'lucide-react'
 
 interface VoiceTaskModalProps {
@@ -19,7 +19,9 @@ interface ParsedTask {
 }
 
 export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalProps) {
-  const { isRecording, transcript, startRecording, stopRecording, isSupported, error } = useVoiceRecording()
+  const { isRecording, startRecording, stopRecording, isSupported, error } = useAudioRecording()
+  const [transcript, setTranscript] = useState('')
+  const [isTranscribing, setIsTranscribing] = useState(false)
   const [isParsing, setIsParsing] = useState(false)
   const [parsedTask, setParsedTask] = useState<ParsedTask | null>(null)
   const [parseError, setParseError] = useState<string | null>(null)
@@ -28,24 +30,57 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
   const [editedTranscript, setEditedTranscript] = useState('')
 
   useEffect(() => {
-    if (transcript && !isRecording && !hasAttemptedParsing) {
+    if (transcript && !isTranscribing && !hasAttemptedParsing) {
       setEditedTranscript(transcript)
       // Don't auto-parse, show edit option first
     }
-  }, [transcript, isRecording, hasAttemptedParsing])
+  }, [transcript, isTranscribing, hasAttemptedParsing])
 
   useEffect(() => {
-    if (!isRecording && !transcript && !isParsing && !parsedTask && !parseError) {
-      // Handle case where recording stopped but no transcript captured (mobile Chrome issue)
+    if (!isRecording && !transcript && !isParsing && !parsedTask && !parseError && !isTranscribing) {
+      // Handle case where recording stopped but no transcript captured
       const timer = setTimeout(() => {
-        if (!transcript && !isParsing && !parsedTask && !parseError) {
+        if (!transcript && !isParsing && !parsedTask && !parseError && !isTranscribing) {
           setParseError('No speech detected. Please try speaking more clearly or check microphone permissions.')
         }
       }, 1000)
       
       return () => clearTimeout(timer)
     }
-  }, [isRecording, transcript])
+  }, [isRecording, transcript, isParsing, parsedTask, parseError, isTranscribing])
+
+  const transcribeAudio = async (audioBlob: Blob) => {
+    setIsTranscribing(true)
+    setParseError(null)
+
+    try {
+      const formData = new FormData()
+      formData.append('audio', audioBlob)
+
+      const response = await fetch('/api/transcribe', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to transcribe audio`)
+      }
+
+      const data = await response.json()
+      setTranscript(data.text)
+    } catch (error) {
+      console.error('Error transcribing audio:', error)
+      
+      if (error instanceof Error) {
+        setParseError(`Transcription error: ${error.message}`)
+      } else {
+        setParseError('Failed to transcribe audio. Please try again.')
+      }
+    } finally {
+      setIsTranscribing(false)
+    }
+  }
 
   const parseVoiceInput = async (text: string) => {
     setIsParsing(true)
@@ -90,14 +125,26 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
     }
   }
 
+  const handleStartRecording = () => {
+    startRecording()
+  }
+
+  const handleStopRecording = async () => {
+    const audioBlob = await stopRecording()
+    if (audioBlob) {
+      await transcribeAudio(audioBlob)
+    }
+  }
+
   const handleTryAgain = () => {
     setParsedTask(null)
     setParseError(null)
     setIsParsing(false)
+    setIsTranscribing(false)
     setHasAttemptedParsing(false)
     setIsEditingTranscript(false)
     setEditedTranscript('')
-    // Note: transcript is managed by the hook, we don't reset it here
+    setTranscript('')
   }
 
   const handleEditTranscript = () => {
@@ -114,12 +161,12 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-lg p-6 w-full max-w-md">
           <div className="text-center">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Voice Not Supported</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Audio Recording Not Supported</h3>
             <p className="text-gray-600 mb-4">
-              Voice input requires Chrome, Edge, or Safari on desktop. Mobile support is limited to Chrome Android.
+              Voice input requires a modern browser with microphone support (Chrome, Firefox, Safari, Edge).
             </p>
             <p className="text-sm text-gray-500 mb-4">
-              Please use the regular form instead, or try on a supported browser.
+              Please use the regular form instead, or try updating your browser.
             </p>
             <button
               onClick={onCancel}
@@ -146,18 +193,18 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
           </button>
         </div>
 
-        {!parsedTask && !isParsing && !parseError && !editedTranscript && (
+        {!parsedTask && !isParsing && !isTranscribing && !parseError && !editedTranscript && (
           <div className="text-center space-y-4">
             <div className="text-gray-600 mb-4">
               <Volume2 size={48} className="mx-auto mb-3 text-gray-400" />
               <p className="text-sm">
-                Speak clearly and use full sentences for better accuracy:
+                Speak naturally - powered by OpenAI Whisper for high accuracy:
               </p>
               <p className="text-xs text-gray-500 mt-2 italic">
 &quot;Remind Sid to update addresses by tomorrow&quot; or &quot;Pri needs to book dentist appointment, red priority&quot;
               </p>
-              <p className="text-xs text-orange-600 mt-1">
-                💡 Longer phrases work better than single words
+              <p className="text-xs text-green-600 mt-1">
+                🎯 Much more accurate than browser speech recognition
               </p>
             </div>
 
@@ -168,8 +215,8 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
             )}
 
             <button
-              onClick={isRecording ? stopRecording : startRecording}
-              disabled={isParsing}
+              onClick={isRecording ? handleStopRecording : handleStartRecording}
+              disabled={isParsing || isTranscribing}
               className={`flex items-center gap-2 mx-auto px-6 py-3 rounded-lg font-medium transition-all ${
                 isRecording
                   ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse'
@@ -192,7 +239,15 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
           </div>
         )}
 
-        {editedTranscript && !isParsing && !parseError && !parsedTask && (
+        {isTranscribing && (
+          <div className="text-center py-8">
+            <Loader2 size={32} className="animate-spin mx-auto mb-3 text-blue-600" />
+            <p className="text-gray-600">Transcribing your voice with AI...</p>
+            <p className="text-xs text-gray-500 mt-1">This may take a few seconds</p>
+          </div>
+        )}
+
+        {editedTranscript && !isParsing && !isTranscribing && !parseError && !parsedTask && (
           <div className="space-y-4">
             <div className="text-center mb-4">
               <p className="text-sm font-medium text-gray-700 mb-2">I heard you say:</p>
