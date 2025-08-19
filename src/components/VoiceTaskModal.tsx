@@ -23,21 +23,27 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
   const [isParsing, setIsParsing] = useState(false)
   const [parsedTask, setParsedTask] = useState<ParsedTask | null>(null)
   const [parseError, setParseError] = useState<string | null>(null)
+  const [hasAttemptedParsing, setHasAttemptedParsing] = useState(false)
 
   useEffect(() => {
-    if (transcript && !isRecording) {
+    if (transcript && !isRecording && !hasAttemptedParsing) {
+      setHasAttemptedParsing(true)
       parseVoiceInput(transcript)
-    } else if (!isRecording && !transcript && !isParsing && !parsedTask) {
+    }
+  }, [transcript, isRecording, hasAttemptedParsing])
+
+  useEffect(() => {
+    if (!isRecording && !transcript && !isParsing && !parsedTask && !parseError) {
       // Handle case where recording stopped but no transcript captured (mobile Chrome issue)
       const timer = setTimeout(() => {
-        if (!transcript && !isParsing && !parsedTask) {
+        if (!transcript && !isParsing && !parsedTask && !parseError) {
           setParseError('No speech detected. Please try speaking more clearly or check microphone permissions.')
         }
       }, 1000)
       
       return () => clearTimeout(timer)
     }
-  }, [transcript, isRecording, isParsing, parsedTask])
+  }, [isRecording, transcript])
 
   const parseVoiceInput = async (text: string) => {
     setIsParsing(true)
@@ -85,6 +91,9 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
   const handleTryAgain = () => {
     setParsedTask(null)
     setParseError(null)
+    setIsParsing(false)
+    setHasAttemptedParsing(false)
+    // Note: transcript is managed by the hook, we don't reset it here
   }
 
   if (!isSupported) {
@@ -124,7 +133,7 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
           </button>
         </div>
 
-        {!parsedTask && !isParsing && (
+        {!parsedTask && !isParsing && !parseError && (
           <div className="text-center space-y-4">
             <div className="text-gray-600 mb-4">
               <Volume2 size={48} className="mx-auto mb-3 text-gray-400" />
@@ -164,19 +173,6 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
               </div>
             )}
             
-            {!isRecording && !transcript && !isParsing && (
-              <div className="text-center">
-                <p className="text-xs text-gray-500 mb-2">
-                  Recording stopped but no speech detected?
-                </p>
-                <button
-                  onClick={handleTryAgain}
-                  className="text-sm text-indigo-600 hover:text-indigo-700 underline"
-                >
-                  Try Again
-                </button>
-              </div>
-            )}
           </div>
         )}
 
