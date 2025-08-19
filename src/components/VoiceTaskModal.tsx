@@ -27,8 +27,17 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
   useEffect(() => {
     if (transcript && !isRecording) {
       parseVoiceInput(transcript)
+    } else if (!isRecording && !transcript && !isParsing && !parsedTask) {
+      // Handle case where recording stopped but no transcript captured (mobile Chrome issue)
+      const timer = setTimeout(() => {
+        if (!transcript && !isParsing && !parsedTask) {
+          setParseError('No speech detected. Please try speaking more clearly or check microphone permissions.')
+        }
+      }, 1000)
+      
+      return () => clearTimeout(timer)
     }
-  }, [transcript, isRecording])
+  }, [transcript, isRecording, isParsing, parsedTask])
 
   const parseVoiceInput = async (text: string) => {
     setIsParsing(true)
@@ -152,6 +161,20 @@ export default function VoiceTaskModal({ onSubmit, onCancel }: VoiceTaskModalPro
                 <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg italic">
                   &quot;{transcript}&quot;
                 </p>
+              </div>
+            )}
+            
+            {!isRecording && !transcript && !isParsing && (
+              <div className="text-center">
+                <p className="text-xs text-gray-500 mb-2">
+                  Recording stopped but no speech detected?
+                </p>
+                <button
+                  onClick={handleTryAgain}
+                  className="text-sm text-indigo-600 hover:text-indigo-700 underline"
+                >
+                  Try Again
+                </button>
               </div>
             )}
           </div>

@@ -17,6 +17,7 @@ export function useVoiceRecording(): UseVoiceRecordingReturn {
   const [error, setError] = useState<string | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Check if browser supports speech recognition
   const isSupported = typeof window !== 'undefined' && 
@@ -45,6 +46,13 @@ export function useVoiceRecording(): UseVoiceRecordingReturn {
         setIsRecording(true)
         setError(null)
         setTranscript('')
+        
+        // Set a timeout to automatically stop recording after 10 seconds
+        timeoutRef.current = setTimeout(() => {
+          if (recognitionRef.current) {
+            recognitionRef.current.stop()
+          }
+        }, 10000)
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -69,6 +77,10 @@ export function useVoiceRecording(): UseVoiceRecordingReturn {
 
       recognition.onend = () => {
         setIsRecording(false)
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current)
+          timeoutRef.current = null
+        }
       }
 
       recognitionRef.current = recognition
@@ -83,7 +95,16 @@ export function useVoiceRecording(): UseVoiceRecordingReturn {
     if (recognitionRef.current) {
       recognitionRef.current.stop()
     }
-    setIsRecording(false)
+    
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+    
+    // Force recording to stop even if onend doesn't fire (mobile Chrome bug)
+    setTimeout(() => {
+      setIsRecording(false)
+    }, 500)
   }, [])
 
   return {
